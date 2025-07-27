@@ -1,19 +1,25 @@
 import { notFound } from "next/navigation"
-import Image from "next/image"
-import Link from "next/link"
-import { ArrowLeft, Calendar, User } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { ArticleCard } from "@/components/article-card"
 import { supabase } from "@/lib/supabase"
 
-interface ArticlePageProps {
-  params: {
+interface CategoryPageProps {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
-async function getArticle(slug: string) {
-  const { data, error } = await supabase
+async function getCategoryWithArticles(slug: string) {
+  const { data: category, error: categoryError } = await supabase
+    .from("categories")
+    .select("*")
+    .eq("slug", slug)
+    .single()
+
+  if (categoryError) {
+    return null
+  }
+
+  const { data: articles, error: articlesError } = await supabase
     .from("articles")
     .select(`
       *,
@@ -22,96 +28,45 @@ async function getArticle(slug: string) {
         slug
       )
     `)
-    .eq("slug", slug)
+    .eq("category_id", category.id)
     .eq("published", true)
-    .single()
+    .order("published_at", { ascending: false })
 
-  if (error) {
-    return null
+  if (articlesError) {
+    return { category, articles: [] }
   }
 
-  return data
+  return { category, articles: articles || [] }
 }
 
-export default async function ArticlePage({ params }: ArticlePageProps) {
-  const article = await getArticle(params.slug)
+export default async function CategoryPage({ params }: CategoryPageProps) {
+  const { slug } = await params
+  const result = await getCategoryWithArticles(slug)
 
-  if (!article) {
+  if (!result) {
     notFound()
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    })
-  }
+  const { category, articles } = result
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Back Button */}
-        <Link href="/">
-          <Button variant="ghost" className="mb-6">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
-          </Button>
-        </Link>
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold mb-4">{category.name}</h1>
+        {category.description && <p className="text-lg text-muted-foreground">{category.description}</p>}
+      </div>
 
-        {/* Article Header */}
-        <header className="mb-8">
-          {article.categories && (
-            <Badge variant="secondary" className="mb-4">
-              {article.categories.name}
-            </Badge>
-          )}
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">{article.title}</h1>
-          <div className="flex items-center gap-6 text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              <span>By {article.author}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span>{formatDate(article.published_at || article.created_at)}</span>
-            </div>
-          </div>
-        </header>
-
-        {/* Featured Image */}
-        {article.image_url && (
-          <div className="relative h-64 md:h-96 mb-8 rounded-lg overflow-hidden">
-            <Image src={article.image_url || "/placeholder.svg"} alt={article.title} fill className="object-cover" />
-          </div>
-        )}
-
-        {/* Article Content */}
-        <div className="prose prose-lg max-w-none">
-          {article.content.split("\n\n").map((paragraph, index) => (
-            <p key={index} className="mb-4 leading-relaxed">
-              {paragraph}
-            </p>
+      {articles.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {articles.map((article) => (
+            <ArticleCard key={article.id} article={article} />
           ))}
         </div>
-
-        {/* Navigation */}
-        <div className="mt-12 pt-8 border-t">
-          <div className="flex justify-between">
-            <Link href="/">
-              <Button variant="outline">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Home
-              </Button>
-            </Link>
-            {article.categories && (
-              <Link href={`/category/${article.categories.slug}`}>
-                <Button variant="outline">More in {article.categories.name}</Button>
-              </Link>
-            )}
-          </div>
+      ) : (
+        <div className="text-center py-12">
+          <p className="text-lg text-muted-foreground">No articles found in this category yet.</p>
         </div>
-      </div>
+      )}
     </div>
   )
 }

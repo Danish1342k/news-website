@@ -18,7 +18,7 @@ interface RecentArticle {
   published_at: string | null
   created_at: string
   published: boolean
-  categories?: { name: string }
+  categories: { name: string } | null
 }
 
 export default function AdminDashboard() {
@@ -47,8 +47,8 @@ export default function AdminDashboard() {
         publishedArticles: publishedResult.count || 0,
       })
 
-      // Fetch recent articles
-      const { data: articles } = await supabase
+      // Fetch recent articles with proper join
+      const { data: articles, error } = await supabase
         .from("articles")
         .select(`
           id, 
@@ -56,14 +56,56 @@ export default function AdminDashboard() {
           published_at, 
           created_at, 
           published,
-          categories (
+          category_id,
+          categories!inner (
             name
           )
         `)
         .order("created_at", { ascending: false })
         .limit(5)
 
-      setRecentArticles(articles || [])
+      if (error) {
+        console.error("Error fetching articles:", error)
+
+        // Fallback: fetch articles without categories
+        const { data: fallbackArticles, error: fallbackError } = await supabase
+          .from("articles")
+          .select("id, title, published_at, created_at, published")
+          .order("created_at", { ascending: false })
+          .limit(5)
+
+        if (fallbackError) {
+          console.error("Fallback query also failed:", fallbackError)
+          setRecentArticles([])
+        } else {
+          const transformedArticles: RecentArticle[] = (fallbackArticles || []).map((article) => ({
+            id: article.id,
+            title: article.title,
+            published_at: article.published_at,
+            created_at: article.created_at,
+            published: article.published,
+            categories: null,
+          }))
+          setRecentArticles(transformedArticles)
+        }
+      } else {
+        // Transform the data to match our interface
+        const transformedArticles: RecentArticle[] = (articles || []).map((article: any) => ({
+          id: article.id,
+          title: article.title,
+          published_at: article.published_at,
+          created_at: article.created_at,
+          published: article.published,
+          categories:
+            article.categories && Array.isArray(article.categories) && article.categories.length > 0
+              ? { name: article.categories[0].name }
+              : article.categories && !Array.isArray(article.categories)
+                ? { name: article.categories.name }
+                : null,
+        }))
+
+        setRecentArticles(transformedArticles)
+      }
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
     } finally {
@@ -179,7 +221,7 @@ export default function AdminDashboard() {
       <Card className="shadow-xl hover:shadow-2xl transition-all duration-500 border-0 bg-white dark:bg-gray-900 animate-in fade-in-50 slide-in-from-bottom-5 duration-700 delay-300">
         <CardHeader className="pb-4 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-t-lg p-4 md:p-6">
           <div className="flex items-center gap-3">
-            <div className="w-6 h-6 md:w-8 md:h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-md">
+            <div className="w-6 h-6 md:w-8 md:h-8 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg flex items-center justify-center shadow-md">
               <TrendingUp className="h-3 w-3 md:h-4 md:w-4 text-white" />
             </div>
             <div>

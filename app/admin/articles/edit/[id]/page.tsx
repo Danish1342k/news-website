@@ -17,12 +17,13 @@ import { supabase, type Category } from "@/lib/supabase"
 import { toast } from "@/hooks/use-toast"
 
 interface EditArticlePageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
-export default function EditArticlePage({ params }: EditArticlePageProps) {
+export default async function EditArticlePage({ params }: EditArticlePageProps) {
+  const { id } = await params
   const router = useRouter()
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(false)
@@ -41,7 +42,7 @@ export default function EditArticlePage({ params }: EditArticlePageProps) {
   useEffect(() => {
     fetchCategories()
     fetchArticle()
-  }, [params.id])
+  }, [id])
 
   const fetchCategories = async () => {
     try {
@@ -55,7 +56,7 @@ export default function EditArticlePage({ params }: EditArticlePageProps) {
 
   const fetchArticle = async () => {
     try {
-      const { data, error } = await supabase.from("articles").select("*").eq("id", params.id).single()
+      const { data, error } = await supabase.from("articles").select("*").eq("id", id).single()
 
       if (error) throw error
 
@@ -104,7 +105,7 @@ export default function EditArticlePage({ params }: EditArticlePageProps) {
         updated_at: new Date().toISOString(),
       }
 
-      const { error } = await supabase.from("articles").update(articleData).eq("id", params.id)
+      const { error } = await supabase.from("articles").update(articleData).eq("id", id)
 
       if (error) throw error
 

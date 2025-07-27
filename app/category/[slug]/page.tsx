@@ -3,9 +3,9 @@ import { ArticleCard } from "@/components/article-card"
 import { supabase } from "@/lib/supabase"
 
 interface CategoryPageProps {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
 async function getCategoryWithArticles(slug: string) {
@@ -40,7 +40,8 @@ async function getCategoryWithArticles(slug: string) {
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
-  const result = await getCategoryWithArticles(params.slug)
+  const { slug } = await params
+  const result = await getCategoryWithArticles(slug)
 
   if (!result) {
     notFound()
