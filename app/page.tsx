@@ -18,10 +18,10 @@ async function getFeaturedArticle() {
     .limit(1)
     .single()
 
-  if (error) {
-    console.error("Error fetching featured article:", error)
-    return null
-  }
+    // if (error) {
+    //   console.error("Error fetching featured article:", error)
+    //   return null
+    // }
 
   return data
 }
@@ -41,10 +41,10 @@ async function getLatestArticles() {
     .order("published_at", { ascending: false })
     .limit(6)
 
-  if (error) {
-    console.error("Error fetching articles:", error)
-    return []
-  }
+  // if (error) {
+  //   console.error("Error fetching articles:", error)
+  //   return []
+  // }
 
   return data || []
 }
