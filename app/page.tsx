@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase"
 import { ArticleCard } from "@/components/article-card"
-import { NewsletterSignup } from "@/components/newsletter-signup"
+// import { NewsletterSignup } from "@/components/newsletter-signup"
 
 async function getFeaturedArticle() {
   const { data, error } = await supabase
@@ -81,9 +81,9 @@ export default async function HomePage() {
       </section>
 
       {/* Newsletter Signup */}
-      <section className="animate-in fade-in-50 slide-in-from-bottom-5 duration-700 delay-500">
+      {/* <section className="animate-in fade-in-50 slide-in-from-bottom-5 duration-700 delay-500">
         <NewsletterSignup />
-      </section>
+      </section> */}
     </div>
   )
 }

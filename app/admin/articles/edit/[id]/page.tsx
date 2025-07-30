@@ -213,7 +213,7 @@ export default async function EditArticlePage({ params }: EditArticlePageProps) 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="excerpt">Excerpt</Label>
+              <Label htmlFor="excerpt">Sub Title</Label>
               <Textarea
                 id="excerpt"
                 value={formData.excerpt}

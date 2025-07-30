@@ -9,9 +9,15 @@ import { Toaster } from "@/components/ui/toaster"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Global News - Stay Informed",
+  title: "The USA Feeds",
   description: "Your trusted source for the latest news and updates from around the world.",
-    generator: 'v0.dev'
+    generator: 'v0.dev',
+    icons: {
+    icon: "/icon/favicon.ico",
+    shortcut: "/icon/favicon.ico",
+    apple: "/icon/apple-touch-icon.png",
+  },
+  manifest: "/icon/site.webmanifest",
 }
 
 export default function RootLayout({

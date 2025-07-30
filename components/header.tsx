@@ -15,7 +15,7 @@ const categories = [
   { name: "Health", href: "/category/health" },
   { name: "Sports", href: "/category/sports" },
   { name: "Entertainment", href: "/category/entertainment" },
-  { name: "Science", href: "/category/science" },
+  // { name: "Science", href: "/category/science" },
 ]
 
 export function Header() {
@@ -37,7 +37,7 @@ export function Header() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="text-2xl font-bold hover:scale-105 transition-transform duration-200">
-            The USA News
+            The USA Feeds
           </Link>
 
           {/* Desktop Navigation */}
@@ -56,7 +56,7 @@ export function Header() {
 
           <div className="flex items-center space-x-2">
             {/* Search */}
-            {searchOpen ? (
+            {/* {searchOpen ? (
               <div className="flex items-center space-x-2 animate-in slide-in-from-right-5 duration-300">
                 <Input
                   placeholder="Search news..."
@@ -82,7 +82,7 @@ export function Header() {
               >
                 <Search className="h-4 w-4" />
               </Button>
-            )}
+            )} */}
 
             {/* Theme Toggle */}
             <Button

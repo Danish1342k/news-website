@@ -87,7 +87,7 @@ export default function AdminLoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@example.com or danish@gmail.com"
+                placeholder="admin@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -141,11 +141,8 @@ export default function AdminLoginPage() {
           <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 rounded-lg border border-blue-200/50 dark:border-blue-800/50 shadow-inner">
             <p className="text-sm text-blue-800 dark:text-blue-200">
               <strong>Admin Access:</strong>
-              <br />• admin@example.com
               <br />• danish@gmail.com
-            </p>
-            <p className="text-xs text-blue-600 dark:text-blue-300 mt-2">
-              Make sure your email is registered in Supabase Auth.
+              <br />• 123456
             </p>
           </div>
         </CardContent>
