@@ -48,8 +48,31 @@ export default function NewArticlePage() {
   const generateSlug = (title: string) => {
     return title
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "")
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, "") // Remove all special characters except spaces and hyphens
+      .replace(/\s+/g, "-") // Replace spaces with hyphens
+      .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
+      .replace(/^-+|-+$/g, "") // Remove leading/trailing hyphens
+  }
+
+  const ensureUniqueSlug = async (baseSlug: string) => {
+    let slug = baseSlug
+    let counter = 1
+
+    while (true) {
+      const { data, error } = await supabase.from("articles").select("id").eq("slug", slug).single()
+
+      if (error || !data) {
+        // Slug is unique
+        break
+      }
+
+      // Slug exists, try with counter
+      slug = `${baseSlug}-${counter}`
+      counter++
+    }
+
+    return slug
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,12 +80,16 @@ export default function NewArticlePage() {
     setLoading(true)
 
     try {
-      const slug = generateSlug(formData.title)
+      const baseSlug = generateSlug(formData.title)
+      const uniqueSlug = await ensureUniqueSlug(baseSlug)
+
       const articleData = {
         ...formData,
-        slug,
+        slug: uniqueSlug,
         category_id: formData.category_id || null,
         published_at: formData.published ? new Date().toISOString() : null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       }
 
       const { error } = await supabase.from("articles").insert([articleData])
@@ -118,6 +145,9 @@ export default function NewArticlePage() {
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   required
                 />
+                {formData.title && (
+                  <p className="text-xs text-muted-foreground">URL will be: /article/{generateSlug(formData.title)}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="author">Author *</Label>

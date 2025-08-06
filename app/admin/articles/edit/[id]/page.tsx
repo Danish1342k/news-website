@@ -87,8 +87,10 @@ export default async function EditArticlePage({ params }: EditArticlePageProps) 
   const generateSlug = (title: string) => {
     return title
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "")
+      .trim()
+      .replace(/[^\w\s-]/g, "") // Remove special characters
+      .replace(/[\s_-]+/g, "-") // Replace spaces and underscores with hyphens
+      .replace(/^-+|-+$/g, "") // Remove leading/trailing hyphens
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -97,9 +99,24 @@ export default async function EditArticlePage({ params }: EditArticlePageProps) 
 
     try {
       const slug = generateSlug(formData.title)
+
+      // Check if slug already exists (excluding current article)
+      const { data: existingArticle } = await supabase
+        .from("articles")
+        .select("id")
+        .eq("slug", slug)
+        .neq("id", id)
+        .single()
+
+      let finalSlug = slug
+      if (existingArticle) {
+        // Add timestamp to make it unique
+        finalSlug = `${slug}-${Date.now()}`
+      }
+
       const articleData = {
         ...formData,
-        slug,
+        slug: finalSlug,
         category_id: formData.category_id || null,
         published_at: formData.published ? new Date().toISOString() : null,
         updated_at: new Date().toISOString(),
@@ -213,7 +230,7 @@ export default async function EditArticlePage({ params }: EditArticlePageProps) 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="excerpt">Sub Title</Label>
+              <Label htmlFor="excerpt">Excerpt</Label>
               <Textarea
                 id="excerpt"
                 value={formData.excerpt}
